@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr  9 16:03:12 2022
+
+@author: camillewathne
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+##Reading compiled data; reclassifying program type and summing
+housing = pd.read_csv("Compiled_Sheet.csv")
+program_list = ["VAC:PROG", "ADOPT:PROG", "REC:PROG", "BID:PROG"]
+housing[program_list] = housing[program_list].fillna(0)
+housing["Program#"] = housing[program_list].sum(axis=1)
+
+housing["VACandADOPT"] = housing[["VAC:PROG", "ADOPT:PROG"]].sum(axis=1)
+housing["VACandREC"] = housing[["VAC:PROG", "REC:PROG"]].sum(axis=1)
+housing["ADOPTandREC"] = housing[["ADOPT:PROG", "REC:PROG"]].sum(axis=1)
+housing["BIDandVAC"] = housing[["BID:PROG", "VAC:PROG"]].sum(axis=1)
+housing["BIDandADOPT"] = housing[["BID:PROG", "ADOPT:PROG"]].sum(axis=1)
+housing["BIDandREC"] = housing[["BID:PROG", "REC:PROG"]].sum(axis=1)
+
+## How many parcels appear in 2 or more programs
+overlap = housing.groupby("Program#")
+overlap_summary = pd.DataFrame()
+overlap_summary["Programs"] = overlap.size()
+print("\nNumber of parcels in 3 programs:\n", overlap_summary.loc[3])
+print("\nNumber of parcels in 2 programs:\n", overlap_summary.loc[2])
+print("\nNumber of parcels in 1 program:\n\n", overlap_summary.loc[1])
+print("\nNumber of parcels in no programs:\n\n", overlap_summary.loc[0])
+
+## How many parcels appear in Vacants and Adopt
+overlap1 = housing.groupby("VACandADOPT")
+overlap1_summary = pd.DataFrame()
+overlap1_summary["VACandADOPT"] = overlap1.size()
+print("\nNumber of parcels in Vacants and Adopt-a-Lot:\n", overlap1_summary.loc[2.0])
+
+## How many parcels appear in Vacants and Receivership
+overlap2 = housing.groupby("VACandREC")
+overlap2_summary = pd.DataFrame()
+overlap2_summary["VACandREC"] = overlap2.size()
+print("\nNumber of parcels in Vacants and Receivership:\n", overlap2_summary.loc[2.0])
+
+## How many parcels appear in Adopt-a_lot and Receivership - NOT APPLICABLE
+##overlap3 = housing.groupby("ADOPTandREC")
+###overlap3_summary = pd.DataFrame()
+##overlap3_summary["ADOPTandREC"] = overlap3.size()
+##print("\nNumber of parcels in Adopt-a-Lot and Receivership:\n", overlap3_summary.loc[2.0])
+
+## How many parcels appear in Open Bid and Vacants
+overlap4 = housing.groupby("BIDandVAC")
+overlap4_summary = pd.DataFrame()
+overlap4_summary["BIDandVAC"] = overlap4.size()
+print("\nNumber of parcels in Open Bid and Vacants:\n", overlap4_summary.loc[2.0])
+
+## How many parcels appear in Open Bid and Adopt
+overlap5 = housing.groupby("BIDandADOPT")
+overlap5_summary = pd.DataFrame()
+overlap5_summary["BIDandADOPT"] = overlap5.size()
+print("\nNumber of parcels in Open Bid and Adopt:\n", overlap5_summary.loc[2.0])
+
+## How many parcels appear in Open Bid and Receivership - NOT APPLICABLE
+##overlap6 = housing.groupby("BIDandREC")
+##overlap6_summary = pd.DataFrame()
+##overlap6_summary["BIDandREC"] = overlap6.size()
+##print("\nNumber of parcels in Open Bid and Receivership:\n", overlap6_summary.loc[2.0])
+
+#%%
+#Describing ownership in real_property dataset
