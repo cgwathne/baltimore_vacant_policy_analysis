@@ -12,12 +12,14 @@ import numpy as np
 
 #%% Real Property Info - TO DO: check conversion to NaN. Counting in a series
 
-## Open file
+print("\nREAL PROPERTY INFO\n")
+
+## Open file = CHANGE TO ZIP?
 real_property = pd.read_csv("real_property.csv", dtype=str)
 
 ## Checking for duplicates in real property records
 real_dup = real_property.duplicated( subset="BLOCKLOT", keep=False)
-print('\nDuplicated BLOCKLOT labels:', real_dup.sum() ) 
+print('Duplicated BLOCKLOT labels:', real_dup.sum() ) 
 print("which represents", round(real_dup.sum()*100/len(real_property), 2), "% of city properties")
 
 ## Describing duplicates in real_property
@@ -37,15 +39,15 @@ real_dup2 = real_property.duplicated( subset="BLOCKLOT", keep=False)
 print('\nAfter dropping, New # of duplicated BLOCKLOT labels in real_property:', real_dup2.sum() ) 
 
 ## Keep 6 columns, remove spaces in block lot
-real_property = real_property[["BLOCKLOT", "TAXBASE", "FULLADDR", "SALEPRIC", "VACIND", "OWNER_1"]]
+real_property = real_property[["BLOCKLOT", "NEIGHBOR", "TAXBASE", "FULLADDR", "SALEPRIC", "VACIND", "OWNER_1"]]
 real_property["BLOCKLOT"] = real_property["BLOCKLOT"].str.replace(' ', '')
 print("\nThe number of unique parcel records for entire city is:", len(real_property))
 
 ## Renaming and classifying column headings
 real_property = real_property.rename(columns={"TAXBASE":"REAL:TaxBase", "FULLADDR":"REAL:FullAdd", 
                                               "SALEPRIC":"REAL:SalePrice","VACIND":"REAL:Vacant", 
-                                              "OWNER_1":"REAL:Owner"})
-real_property = real_property[["BLOCKLOT", "REAL:FullAdd", "REAL:TaxBase", 
+                                              "OWNER_1":"REAL:Owner", "NEIGHBOR": "REAL:Neighborhood"})
+real_property = real_property[["BLOCKLOT", "REAL:FullAdd", "REAL:Neighborhood", "REAL:TaxBase", 
                                "REAL:SalePrice", "REAL:Vacant", "REAL:Owner"]]
 
 #  Convert missing data to null strings - CHECK 
@@ -78,8 +80,11 @@ fig1.tight_layout()
 ##Saving cleaned data to csv file
 real_property.to_csv("real_property_clean.csv")
 
+print("\n-------------------\n")
 
 #%% Adopt A Lot - TO DO: add graphs? look at vacants.
+
+print("ADOPT-A-LOT INFO\n")
 
 ## Open Adopt-A-Lot
 adopt_a_lot = pd.read_csv("adopt_a_lot.csv", dtype=str)
@@ -90,7 +95,7 @@ adopt_a_lot = adopt_a_lot.drop(columns=["Licensee", "Shape", "QCMOS", "AssetMgmt
               "Council_District", "NotAdoptable"])
 
 ## Determining extent of missing data after removing columns
-print("\nAfter dropping columns, number of missing values in each column of adopt-a-lot out of", len(adopt_a_lot), 
+print("After dropping columns, number of missing values in each column of adopt-a-lot out of", len(adopt_a_lot), 
       "total entries:\n", adopt_a_lot.isnull().sum())
 
 ## Removing spaces in block lot and column names, renaming BlockLot to BLOCKLOT
@@ -111,6 +116,19 @@ print("\nBreakdown of Adopt-a-Lot property types:\n\n", adopt_a_lot["Type"].valu
 print("\nBreakdown of Responsible Agencies:\n\n", adopt_a_lot["ResponsibleAgency"].value_counts())
 print("\nBreakdown of Housing Typologies:\n\n", adopt_a_lot["HousingTypology2017"].value_counts())
 
+## Graph of housing neighborhoods for adoptable lots
+adopt_by_neighborhood = adopt_a_lot.groupby("Neighborhood")
+adopt_neighborhood_summary = pd.DataFrame()
+adopt_neighborhood_summary["neighborhood"] = adopt_by_neighborhood.size()
+adopt_top_neighborhood = adopt_neighborhood_summary["neighborhood"].sort_values()[-10:]
+
+fig1, ax1 = plt.subplots()
+adopt_top_neighborhood.plot.barh(ax=ax1)
+ax1.set_xlabel("Neighborhood")
+ax1.set_title('Prevalance of Neighborhood for Adopt-A-Lot')
+fig1.tight_layout()
+##fig1.savefig('figure.png')
+
 ## Preparing for merge
 adopt_a_lot["ADOPT:PROG"] = 1
 adopt_a_lot = adopt_a_lot.rename(columns={"ResponsibleAgency":"ADOPT:RespAgency", "Type":"ADOPT:Type", 
@@ -122,9 +140,11 @@ adopt_a_lot = adopt_a_lot[["BLOCKLOT", "ADOPT:PROG", "ADOPT:Address", "ADOPT:Nei
 ##Saving cleaned data to csv file
 adopt_a_lot.to_csv("adopt_a_lot_clean.csv")
 
-
+print("\n-------------------\n")
 
 #%% Vacants
+
+print("VACANTS INFO\n")
 
 ## Open Vacants
 vacants = pd.read_csv("vacants.csv", dtype=str)
@@ -134,7 +154,7 @@ vacants = vacants.drop(columns=["NoticeNum", "Shape", "Council_District",
               "OBJECTID", "ESRI_OID", "x", "y"])
 
 ## Determining extent of missing data
-print("\nNumber of missing values in each column of vacants out of", len(vacants), 
+print("Number of missing values in each column of vacants out of", len(vacants), 
       "total entries:\n", vacants.isnull().sum())
 
 ## Removing spaces in block lot and column names
@@ -187,8 +207,11 @@ vacants = vacants[["BLOCKLOT", "VAC:PROG", "VAC:Neighborhood", "VAC:Typology"]]
 ##Saving cleaned data to csv file
 vacants.to_csv("vacants_clean.csv")
 
+print("\n-------------------\n")
 
 #%% Receivership TO DO: check dates?
+
+print("RECEIVERSHIP INFO\n")
 
 ## Open Receivership
 receiver = pd.read_csv("receiverships.csv", dtype=str)
@@ -201,7 +224,7 @@ receiver = receiver.drop(columns=["Lawyer", "ProjectName", "ReceiverAppointed",
               "AuctionDate", "x", "y"])
 
 ## Determining extent of missing data
-print("\nNumber of missing values in each column of receiver out of", len(receiver), 
+print("Number of missing values in each column of receiver out of", len(receiver), 
       "total entries:\n", receiver.isnull().sum())
 
 ## Combining address fields (and replace nan with empty string) - troubleshoot this
@@ -246,9 +269,14 @@ receiver = receiver[["BLOCKLOT", "REC:PROG", "REC:Neighborhood", "REC:Address"]]
 ##Saving cleaned data to csv file
 receiver.to_csv("receiver_clean.csv")
 
+print("\n-------------------\n")
+
 #%% Open Bid
 
 ## Open open bid
+
+print("OPEN BID INFO\n")
+
 open_bid = pd.read_csv("open_bid.csv", dtype=str)
 
 ##Dropping columns with very limited info/are irrelevant
@@ -308,7 +336,7 @@ open_bid = open_bid[["BLOCKLOT", "BID:PROG", "BID:Neighborhood", "BID:Typology",
 ##Saving cleaned data to csv file
 open_bid.to_csv("open_bid_clean.csv")
 
-
+print("\n-------------------\n")
 
 
 
