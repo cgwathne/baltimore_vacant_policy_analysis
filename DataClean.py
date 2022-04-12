@@ -50,8 +50,10 @@ real_property = real_property.rename(columns={"TAXBASE":"REAL:TaxBase", "FULLADD
 real_property = real_property[["BLOCKLOT", "REAL:FullAdd", "REAL:Neighborhood", "REAL:TaxBase", 
                                "REAL:SalePrice", "REAL:Vacant", "REAL:Owner"]]
 
-#  Convert missing data to null strings - CHECK 
+#  Convert missing data to null strings, changing notation on real vacants
 real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'^\s*$', np.NaN, regex=True)
+real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'Y', 1)
+real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'N', 0)
 real_property["REAL:FullAdd"] = real_property["REAL:FullAdd"].replace(r'^\s*$', np.NaN, regex=True)
 
 ## Determining missing data CHECK
@@ -274,7 +276,6 @@ print("\n-------------------\n")
 #%% Open Bid
 
 ## Open open bid
-
 print("OPEN BID INFO\n")
 
 open_bid = pd.read_csv("open_bid.csv", dtype=str)

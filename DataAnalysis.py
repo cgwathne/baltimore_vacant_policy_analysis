@@ -11,22 +11,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-#%%
+#%% Creating columns for program enrollment and co-occurence of programs at parcel level
 
-##Reading compiled data; reclassifying program type and summing
+##Reading compiled data; reclassifying program type and summing programs
 parcels = pd.read_csv("Compiled_Sheet.csv")
 program_list = ["VAC:PROG", "ADOPT:PROG", "REC:PROG", "BID:PROG"]
 parcels[program_list] = parcels[program_list].fillna(0)
 parcels["Program#"] = parcels[program_list].sum(axis=1)
 
-parcels["VACandADOPT"] = parcels[["VAC:PROG", "ADOPT:PROG"]].sum(axis=1)
-parcels["VACandREC"] = parcels[["VAC:PROG", "REC:PROG"]].sum(axis=1)
-parcels["ADOPTandREC"] = parcels[["ADOPT:PROG", "REC:PROG"]].sum(axis=1)
-parcels["BIDandVAC"] = parcels[["BID:PROG", "VAC:PROG"]].sum(axis=1)
-parcels["BIDandADOPT"] = parcels[["BID:PROG", "ADOPT:PROG"]].sum(axis=1)
-parcels["BIDandREC"] = parcels[["BID:PROG", "REC:PROG"]].sum(axis=1)
-
-## How many parcels appear in 2 or more programs
+## Describing co-occurence between programs at city level
 overlap = parcels.groupby("Program#")
 overlap_summary = pd.DataFrame()
 overlap_summary["Programs"] = overlap.size()
@@ -38,58 +31,78 @@ print("\nTotal number of parcels:", len(parcels), "\n")
 
 print("\n-------------------------")
 
-## How many parcels appear in Vacants and Adopt
-overlap1 = parcels.groupby("VACandADOPT")
-overlap1_summary = pd.DataFrame()
-overlap1_summary["VACandADOPT"] = overlap1.size()
-print("\nNumber of parcels in Vacants and Adopt-a-Lot:\n", overlap1_summary.loc[2.0])
+## Describing co-occurence between individual programs at the city level 
+programs = parcels.groupby(["VAC:PROG", "ADOPT:PROG", "REC:PROG", "BID:PROG"])
+program_agg = pd.DataFrame()
+program_agg["total_instances"] = programs.size()
+print("\nCheck: does total match number of parcels above?", program_agg["total_instances"].sum(), "\n")
+print("Determined no co-occurence between Receivership&OpenBid, and Receivership&Adopt")
 
-## How many parcels appear in Vacants and Receivership
-overlap2 = parcels.groupby("VACandREC")
-overlap2_summary = pd.DataFrame()
-overlap2_summary["VACandREC"] = overlap2.size()
-print("\nNumber of parcels in Vacants and Receivership:\n", overlap2_summary.loc[2.0])
+## Co-occurence between Vacants and Adopt
+parcels["VACandADOPT"] = parcels[["VAC:PROG", "ADOPT:PROG"]].sum(axis=1)
+parcels["VACandADOPT"] = parcels["VACandADOPT"].replace(1, 0)
+parcels["VACandADOPT"] = parcels["VACandADOPT"].replace(2, 1)
+print("\nTotal co-occurence between Vacants and Adopt:", parcels["VACandADOPT"].sum())
 
-## How many parcels appear in Adopt-a_lot and Receivership - NOT APPLICABLE
-##overlap3 = parcels.groupby("ADOPTandREC")
-###overlap3_summary = pd.DataFrame()
-##overlap3_summary["ADOPTandREC"] = overlap3.size()
-##print("\nNumber of parcels in Adopt-a-Lot and Receivership:\n", overlap3_summary.loc[2.0])
+## Co-occurence between vacants and receivership
+parcels["VACandREC"] = parcels[["VAC:PROG", "REC:PROG"]].sum(axis=1)
+parcels["VACandREC"] = parcels["VACandREC"].replace(1, 0)
+parcels["VACandREC"] = parcels["VACandREC"].replace(2, 1)
+print("\nTotal co-occurence between Vacants and Receivership:", parcels["VACandREC"].sum())
 
-## How many parcels appear in Open Bid and Vacants
-overlap4 = parcels.groupby("BIDandVAC")
-overlap4_summary = pd.DataFrame()
-overlap4_summary["BIDandVAC"] = overlap4.size()
-print("\nNumber of parcels in Open Bid and Vacants:\n", overlap4_summary.loc[2.0])
+## Co-occurence between vacants and open bid
+parcels["VACandBID"] = parcels[["BID:PROG", "VAC:PROG"]].sum(axis=1)
+parcels["VACandBID"] = parcels["VACandBID"].replace(1, 0)
+parcels["VACandBID"] = parcels["VACandBID"].replace(2, 1)
+print("\nTotal co-occurence between Vacants and Open bid:", parcels["VACandBID"].sum())
 
-## How many parcels appear in Open Bid and Adopt
-overlap5 = parcels.groupby("BIDandADOPT")
-overlap5_summary = pd.DataFrame()
-overlap5_summary["BIDandADOPT"] = overlap5.size()
-print("\nNumber of parcels in Open Bid and Adopt:\n", overlap5_summary.loc[2.0])
+## Co-occurence between adopt and open bid
+parcels["ADOPTandBID"] = parcels[["BID:PROG", "ADOPT:PROG"]].sum(axis=1)
+parcels["ADOPTandBID"] = parcels["ADOPTandBID"].replace( 1, 0)
+parcels["ADOPTandBID"] = parcels["ADOPTandBID"].replace(2, 1)
+print("\nTotal co-occurence between Adopt and Open bid:", parcels["ADOPTandBID"].sum())
 
-## How many parcels appear in Open Bid and Receivership - NOT APPLICABLE
-##overlap6 = parcels.groupby("BIDandREC")
-##overlap6_summary = pd.DataFrame()
-##overlap6_summary["BIDandREC"] = overlap6.size()
-##print("\nNumber of parcels in Open Bid and Receivership:\n", overlap6_summary.loc[2.0])
+## Creating neighborhood-level dataframe; Aggregating program and ownership data for parcels by neighborhood
 
-#%%
-#Describing ownership in parcels
-
-## Grouping by neighborhood and program type
+## Grouping by neighborhood and program type - ISSUE - should only be counting if value=2
 neighborhood_agg = parcels.groupby(["REAL:Neighborhood"]).agg({"VAC:PROG":np.sum, "REC:PROG":np.sum,
-                                                               "ADOPT:PROG":np.sum,"BID:PROG":np.sum,
-                                                               "VACandADOPT":np.sum, "VACandREC":np.sum, 
-                                                               "BIDandVAC":np.sum, "BIDandADOPT":np.sum})
+                                                              "ADOPT:PROG":np.sum,"BID:PROG":np.sum,
+                                                              "VACandADOPT":np.sum, "VACandREC":np.sum, 
+                                                              "VACandBID":np.sum, "ADOPTandBID":np.sum,
+                                                              "REAL:Vacant":np.sum})
 
+#%% Describing city ownership at parcel level, then adding to neighborhood aggregate
+
+## Calculating total parcels by neighborhood
 parcels_by_neighborhood = parcels.groupby("REAL:Neighborhood")
 neighborhood_agg["TotalParcels"] = parcels_by_neighborhood.size()
 
+## Creating criteria for city ownership; colum in parcels to flag city ownership
+city_list = ["MAYOR ", "CITY COUNCIL"]
+parcels['CityOwned'] = False
+for phrase in city_list:
+    parcels['CityOwned'] = parcels["CityOwned"] | parcels['REAL:Owner'].str.contains(phrase)
+print("\nNumber of parcels owned by the city:", parcels["CityOwned"].sum())
 
+## Determining city ownership
+cityowned_parcels = parcels.groupby(["REAL:Neighborhood", "CityOwned"])
+cityowned_neighborhood = cityowned_parcels.size().unstack()
 
+## Adding city ownership data to neighborhood agg - ISSUE WITH RENAMING TRUE FALSE columns
+neighborhood_agg = neighborhood_agg.merge(cityowned_neighborhood, on="REAL:Neighborhood", how='outer', indicator=True)
+print("\nMerge counts:\n\n", neighborhood_agg["_merge"].value_counts() )
+neighborhood_agg = neighborhood_agg.drop(columns=["_merge"])
 
+##neighborhood_agg = neighborhood_agg.rename(columns={"True":"CityOwned", "False":"NotCityOwned"})
 
+#%%
+
+## Understanding real property vacants vs prog vacants vs city ownership
+vacant_test = parcels.groupby(["VAC:PROG", "REAL:Vacant", "CityOwned"])
+vacanttest = pd.DataFrame()
+vacanttest["total_instances"] = vacant_test.size()
+
+neighborhood_agg.to_csv("neighborhood_agg.csv")
 
 
 
