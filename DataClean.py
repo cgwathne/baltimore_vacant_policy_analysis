@@ -247,7 +247,7 @@ print('\nDuplicated parcels in Receiver:', receiver_dup.sum() )
 print('\nAfter dropping, New # of duplicated BLOCKLOT labels in Receiver:', receiver_dup2.sum() ) 
 
 ## Describing data
-print("\nTotal records in Receiver:", len(vacants))
+print("\nTotal records in Receiver:", len(receiver))
 
 ## Graph of housing neighborhoods for receivership activities
 receiver_by_neighborhood = receiver.groupby("Neighborhood")
