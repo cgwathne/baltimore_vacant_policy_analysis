@@ -25,8 +25,8 @@ overlap_summary = pd.DataFrame()
 overlap_summary["Programs"] = overlap.size()
 print("\nNumber of parcels in 3 programs:\n", overlap_summary.loc[3])
 print("\nNumber of parcels in 2 programs:\n", overlap_summary.loc[2])
-print("\nNumber of parcels in 1 program:\n\n", overlap_summary.loc[1])
-print("\nNumber of parcels in no programs:\n\n", overlap_summary.loc[0])
+print("\nNumber of parcels in 1 program:\n", overlap_summary.loc[1])
+print("\nNumber of parcels in no programs:\n", overlap_summary.loc[0])
 print("\nTotal number of parcels:", len(parcels), "\n")
 
 print("\n-------------------------")
@@ -36,7 +36,7 @@ programs = parcels.groupby(["VAC:PROG", "ADOPT:PROG", "REC:PROG", "BID:PROG"])
 program_agg = pd.DataFrame()
 program_agg["total_instances"] = programs.size()
 print("\nCheck: does total match number of parcels above?", program_agg["total_instances"].sum(), "\n")
-print("Determined no co-occurence between Receivership&OpenBid, and Receivership&Adopt")
+print("(Determined no co-occurence between Receivership & OpenBid, and Receivership & Adopt)")
 
 ## Co-occurence between Vacants and Adopt
 parcels["VACandADOPT"] = parcels[["VAC:PROG", "ADOPT:PROG"]].sum(axis=1)
@@ -64,7 +64,7 @@ print("\nTotal co-occurence between Adopt and Open bid:", parcels["ADOPTandBID"]
 
 ## Creating neighborhood-level dataframe; Aggregating program and ownership data for parcels by neighborhood
 
-## Grouping by neighborhood and program type - ISSUE - should only be counting if value=2
+## Grouping by neighborhood and program type
 neighborhood_agg = parcels.groupby(["REAL:Neighborhood"]).agg({"VAC:PROG":np.sum, "REC:PROG":np.sum,
                                                               "ADOPT:PROG":np.sum,"BID:PROG":np.sum,
                                                               "VACandADOPT":np.sum, "VACandREC":np.sum, 
@@ -82,9 +82,10 @@ city_list = ["MAYOR ", "CITY COUNCIL"]
 parcels['CityOwned'] = False
 for phrase in city_list:
     parcels['CityOwned'] = parcels["CityOwned"] | parcels['REAL:Owner'].str.contains(phrase)
+parcels["CityOwned"] = parcels["CityOwned"].astype(int)
 print("\nNumber of parcels owned by the city:", parcels["CityOwned"].sum())
 
-## Determining city ownership
+## Determining city ownership at neighborhood level
 cityowned_parcels = parcels.groupby(["REAL:Neighborhood", "CityOwned"])
 cityowned_neighborhood = cityowned_parcels.size().unstack()
 
@@ -92,10 +93,21 @@ cityowned_neighborhood = cityowned_parcels.size().unstack()
 neighborhood_agg = neighborhood_agg.merge(cityowned_neighborhood, on="REAL:Neighborhood", how='outer', indicator=True)
 print("\nMerge counts:\n\n", neighborhood_agg["_merge"].value_counts() )
 neighborhood_agg = neighborhood_agg.drop(columns=["_merge"])
+neighborhood_agg = neighborhood_agg.rename(columns={1:"CityOwned", 0:"NotCityOwned"})
 
-##neighborhood_agg = neighborhood_agg.rename(columns={"True":"CityOwned", "False":"NotCityOwned"})
+## Identifying which city owned properties are in 1 or more program
+city_owned_program = parcels.loc[ (parcels["CityOwned"] == 1) & (parcels["Program#"] != 0)]
+city_owned_program_neighborhood = city_owned_program.groupby("REAL:Neighborhood")
+city_lots_inprogram = pd.DataFrame()
+city_lots_inprogram["CityOwnedProgramSubset"] = city_owned_program_neighborhood.size()
+neighborhood_agg = neighborhood_agg.merge(city_lots_inprogram, on= "REAL:Neighborhood", how="outer", indicator=True)
+print("\nMerge counts:\n\n", neighborhood_agg["_merge"].value_counts() )
+neighborhood_agg = neighborhood_agg.drop(columns=["_merge"])
+print("Total city owned parcels:", parcels["CityOwned"].sum())
+print("\nTotal city owned parcels in one or more vacant-related programs:\n", round(neighborhood_agg["CityOwnedProgramSubset"].sum()))
 
-#%%
+
+#%% Add Real Property Vacant data? Have not completed. 
 
 ## Understanding real property vacants vs prog vacants vs city ownership
 vacant_test = parcels.groupby(["VAC:PROG", "REAL:Vacant", "CityOwned"])

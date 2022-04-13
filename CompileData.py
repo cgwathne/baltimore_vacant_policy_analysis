@@ -76,5 +76,6 @@ combined4.columns = combined4.columns.str.replace(' ', '')
 
 combined4.to_csv("Compiled_Sheet.csv")
 
+print("\n-------------------\n")
 
 
