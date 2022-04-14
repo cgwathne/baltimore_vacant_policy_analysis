@@ -83,7 +83,7 @@ parcels_by_neighborhood = parcels.groupby("REAL:Neighborhood")
 neighborhood_agg["TotalParcels"] = parcels_by_neighborhood.size()
 
 
-#%% Describing city ownership at parcel level, then adding to neighborhood aggregate
+#%% Describing city ownership at parcel level, then adding to neighborhood aggregate - maybe check city program due to dashboard data
 
 ## Creating criteria for city ownership; colum in parcels to flag city ownership
 city_list = ["MAYOR ", "CITY COUNCIL"]
