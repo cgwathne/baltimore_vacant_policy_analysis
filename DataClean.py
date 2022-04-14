@@ -9,12 +9,15 @@ Created on Sat Apr  2 11:00:12 2022
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import zipfile
 
-#%% Real Property Info - TO DO: check conversion to NaN. Counting in a series
+#%% Real Property Info - TO DO: change to zip file. check determination of 
+## missing data (60). Counting in a series
+## optional - how to sum totals of "top 10" count? to see what remains (76)
 
 print("\nREAL PROPERTY INFO\n")
 
-## Open file = CHANGE TO ZIP?
+## Open file
 real_property = pd.read_csv("real_property.csv", dtype=str)
 
 ## Checking for duplicates in real property records
@@ -50,13 +53,13 @@ real_property = real_property.rename(columns={"TAXBASE":"REAL:TaxBase", "FULLADD
 real_property = real_property[["BLOCKLOT", "REAL:FullAdd", "REAL:Neighborhood", "REAL:TaxBase", 
                                "REAL:SalePrice", "REAL:Vacant", "REAL:Owner"]]
 
-#  Convert missing data to null strings, changing notation on real vacants
+## Convert missing data to null strings, changing notation on real vacants
 real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'^\s*$', np.NaN, regex=True)
 real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'Y', 1)
 real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'N', 0)
 real_property["REAL:FullAdd"] = real_property["REAL:FullAdd"].replace(r'^\s*$', np.NaN, regex=True)
 
-## Determining missing data CHECK
+## Determining missing data
 print("\nNumber of missing values in each column of Real Property Data out of", len(real_property), 
      "total entries:\n", real_property.isna().sum()) 
 
@@ -70,21 +73,20 @@ real_owner_summary["Owner"] = real_owners.size()
 real_top25_owners = real_owner_summary["Owner"].sort_values()[-25:]
 real_top10_owners = real_owner_summary["Owner"].sort_values()[-10:]
 print("\nTop 25 owners and parcel amounts from real_property data:\n\n", real_top25_owners)
-# #top_owner_total = top_owners["Owner"].sum() - how to total this? 
 
 ## Graphing top owners
 fig1, ax1 = plt.subplots()
-real_top10_owners.plot.barh(ax=ax1)
+real_top10_owners.plot.barh(ax=ax1, color=("#84169A"))
 ax1.set_xlabel("# of parcels owned")
-ax1.set_title('Top 10 Owners of all lots')
-fig1.tight_layout()
+ax1.set_title('Number of lots by top 10 owners')
+fig1.savefig('real_top10owners.png')
 
 ##Saving cleaned data to csv file
 real_property.to_csv("real_property_clean.csv")
 
 print("\n-------------------\n")
 
-#%% Adopt A Lot - TO DO: add graphs? look at vacants.
+#%% Adopt A Lot - TO DO: how to justify labels on bar graphs? change color?
 
 print("ADOPT-A-LOT INFO\n")
 
@@ -125,11 +127,10 @@ adopt_neighborhood_summary["neighborhood"] = adopt_by_neighborhood.size()
 adopt_top_neighborhood = adopt_neighborhood_summary["neighborhood"].sort_values()[-10:]
 
 fig1, ax1 = plt.subplots()
-adopt_top_neighborhood.plot.barh(ax=ax1)
+adopt_top_neighborhood.plot.barh(ax=ax1, color=("#21A6D7"))
 ax1.set_xlabel("Neighborhood")
-ax1.set_title('Prevalance of Neighborhood for Adopt-A-Lot')
-fig1.tight_layout()
-##fig1.savefig('figure.png')
+ax1.set_title("Top 10 neighborhoods for adopt-a-lot properties")
+fig1.savefig('adopt_neighborhoods.png')
 
 ## Preparing for merge
 adopt_a_lot["ADOPT:PROG"] = 1
@@ -181,11 +182,10 @@ vacants_type_summary["Type"] = vacants_by_type.size()
 vacants_type_summary = vacants_type_summary.sort_values("Type")
 
 fig1, ax1 = plt.subplots()
-vacants_type_summary.plot.barh(ax=ax1)
+vacants_type_summary.plot.barh(ax=ax1, color=("#619B1E"))
 ax1.set_xlabel('Type')
 ax1.set_title('Prevalance of Housing Typology for Vacants')
-fig1.tight_layout()
-##fig1.savefig('figure.png')
+fig1.savefig("vacants_bytypology.png")
 
 ## Graph of housing neighborhoods for vacant lots
 vacants_by_neighborhood = vacants.groupby("NEIGHBOR")
@@ -194,11 +194,10 @@ vacants_neighborhood_summary["NEIGHBOR"] = vacants_by_neighborhood.size()
 vacants_top_neighborhood = vacants_neighborhood_summary["NEIGHBOR"].sort_values()[-10:]
 
 fig1, ax1 = plt.subplots()
-vacants_top_neighborhood.plot.barh(ax=ax1)
+vacants_top_neighborhood.plot.barh(ax=ax1, color=("#3D7002"))
 ax1.set_xlabel("Neighborhood")
 ax1.set_title('Prevalance of Neighborhood for Vacants')
-fig1.tight_layout()
-##fig1.savefig('figure.png')
+fig1.savefig("vacants_byneighborhood")
 
 ## Preparing for merge
 vacants["VAC:PROG"] = 1
@@ -256,11 +255,10 @@ receiver_neighborhood_summary["Neighborhood"] = receiver_by_neighborhood.size()
 receiver_top_neighborhood = receiver_neighborhood_summary["Neighborhood"].sort_values()[-10:]
 
 fig1, ax1 = plt.subplots()
-receiver_top_neighborhood.plot.barh(ax=ax1)
+receiver_top_neighborhood.plot.barh(ax=ax1, color=("#900606"))
 ax1.set_xlabel("Neighborhood")
 ax1.set_title('Prevalance of Neighborhood for Receivership')
-fig1.tight_layout()
-##fig1.savefig('figure.png')
+fig1.savefig('receivership_byneighborhood.png')
 
 ## Preparing for merge
 receiver["REC:PROG"] = 1
@@ -309,11 +307,11 @@ open_bid_type_summary["HousingTypology"] = open_bid_by_type.size()
 open_bid_type_summary = open_bid_type_summary.sort_values("HousingTypology")
 
 fig1, ax1 = plt.subplots()
-open_bid_type_summary.plot.barh(ax=ax1)
+open_bid_type_summary.plot.barh(ax=ax1, color=("#B69527"))
 ax1.set_xlabel('HousingTypology')
 ax1.set_title('Prevalance of Housing Typology for Open Bid')
 fig1.tight_layout()
-##fig1.savefig('figure.png')
+fig1.savefig('openbid_bytypology.png')
 
 ## Graph of housing neighborhoods for open bid
 open_bid_by_neighborhood = open_bid.groupby("Neighborhood")
@@ -322,11 +320,11 @@ open_bid_neighborhood_summary["NEIGHBOR"] = open_bid_by_neighborhood.size()
 open_bid_top_neighborhood = open_bid_neighborhood_summary["NEIGHBOR"].sort_values()[-10:]
 
 fig1, ax1 = plt.subplots()
-open_bid_top_neighborhood.plot.barh(ax=ax1)
+open_bid_top_neighborhood.plot.barh(ax=ax1, color=("#866A0D"))
 ax1.set_xlabel("Neighborhood")
 ax1.set_title('Prevalance of Neighborhood for Open Bid')
 fig1.tight_layout()
-##fig1.savefig('figure.png')
+fig1.savefig('openbid_byneighborhood.png')
 
 ## Preparing for merge
 open_bid["BID:PROG"] = 1

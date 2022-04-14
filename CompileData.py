@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-#%% Merging - how to do this between 4 files when checking merge?
+#%% Merging - cleaned individual data files
 
 ## Opening real property data
 RealProperty = pd.read_csv("real_property_clean.csv")
