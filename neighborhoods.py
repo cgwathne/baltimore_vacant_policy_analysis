@@ -22,14 +22,19 @@ neighborhoods = neighborhoods.drop(columns=["fid", "housing", "occupied", "occ_o
                                             "vacant", "vac_rent", "vac_sale", "vac_other", 
                                             "color_2", "geodata_eg", "created_da", 
                                             "last_edite", "last_edi_1", "shape_star","shape_stle", 
-                                            "SHAPE__Length", "SHAPE__Area", "created_us"])
+                                            "SHAPE__Length", "SHAPE__Area", "created_us", "age0_4",
+                                            "age5_11", "age12_14", "age15_17", "age18_24", "age25_34",
+                                            "age35_44", "age45_64", "age65ovr", "married", "married18",
+                                            "malehh", "femalehh", "femalehh18", "malehh18"])
 neighborhoods = neighborhoods.rename(columns={"name":"Neighborhood"})
 neighborhoods["Neighborhood"] = neighborhoods["Neighborhood"].str.upper()
+neighborhoods["Neighborhood"] = neighborhoods["Neighborhood"].str.strip()
 neighborhoods["Neighborhood"] = neighborhoods["Neighborhood"].str.replace(r"\s+", " ", regex=True)
 
 ## Read in economic data from city compiled pdf documents
 city_data_pdf = pd.read_csv("city_data_pdf.csv")
 city_data_pdf["Neighborhood"] = city_data_pdf["Neighborhood"].str.upper()
+city_data_pdf["Neighborhood"] = city_data_pdf["Neighborhood"].str.strip()
 city_data_pdf["Neighborhood"] = city_data_pdf["Neighborhood"].str.replace(r"\s+", " ", regex=True)
 
 ## Merging city data from pdfs onto neighborhoods
@@ -41,6 +46,7 @@ neighborhoods = neighborhoods.drop(columns="_merge")
 neighborhood_agg = pd.read_csv("neighborhood_agg.csv")
 neighborhood_agg = neighborhood_agg.rename(columns={"REAL:Neighborhood":"Neighborhood"})
 neighborhood_agg["Neighborhood"] = neighborhood_agg["Neighborhood"].str.upper()
+neighborhood_agg["Neighborhood"] = neighborhood_agg["Neighborhood"].str.strip()
 neighborhood_agg["Neighborhood"] = neighborhood_agg["Neighborhood"].str.replace(r"\s+", " ", regex=True)
 
 ## Merging neighborhood agg and neighborhoods to create neighborhood_data
@@ -49,7 +55,7 @@ print("\nMerge counts:\n\n", neighborhood_data["_merge"].value_counts() )
 neighborhood_data = neighborhood_data[neighborhood_data["_merge"].str.contains("left_only")==False]
 neighborhood_data = neighborhood_data.drop(columns="_merge")
 
-neighborhood_data = neighborhood_data.to_csv("neighborhood_data.csv")
+neighborhood_data.to_csv("neighborhood_data.csv")
 
 
 

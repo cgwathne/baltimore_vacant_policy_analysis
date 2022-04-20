@@ -58,6 +58,7 @@ real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'^\s*$', np
 real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'Y', 1)
 real_property["REAL:Vacant"] = real_property["REAL:Vacant"].replace(r'N', 0)
 real_property["REAL:FullAdd"] = real_property["REAL:FullAdd"].replace(r'^\s*$', np.NaN, regex=True)
+real_property["REAL:Owner"] = real_property["REAL:Owner"].str.strip()
 
 ## Determining missing data
 print("\nNumber of missing values in each column of Real Property Data out of", len(real_property), 
@@ -106,6 +107,8 @@ print("After dropping columns, number of missing values in each column of adopt-
 adopt_a_lot["BlockLot"] = adopt_a_lot["BlockLot"].str.replace(' ', '')
 adopt_a_lot.columns = adopt_a_lot.columns.str.replace(' ', '')
 adopt_a_lot = adopt_a_lot.rename(columns={"BlockLot":"BLOCKLOT"})
+adopt_a_lot["Neighborhood"] = adopt_a_lot["Neighborhood"].str.strip()
+
 
 ## Identifying duplicated parcels and dropping duplicates
 adopt_dup = adopt_a_lot.duplicated( subset="BLOCKLOT", keep=False )
@@ -163,6 +166,8 @@ print("Number of missing values in each column of vacants out of", len(vacants),
 ## Removing spaces in block lot and column names
 vacants["BLOCKLOT"] = vacants["BLOCKLOT"].str.replace(' ', '')
 vacants.columns = vacants.columns.str.replace(' ', '')
+vacants["NEIGHBOR"] = vacants["NEIGHBOR"].str.strip()
+
 
 ## Identifying duplicated parcels and dropping duplicates
 vacants_dup = vacants.duplicated( subset="BLOCKLOT", keep=False )
@@ -184,7 +189,7 @@ vacants_type_summary = vacants_type_summary.sort_values("Type")
 fig1, ax1 = plt.subplots()
 vacants_type_summary.plot.barh(ax=ax1, color=("#619B1E"))
 ax1.set_xlabel('Type')
-ax1.set_title('Prevalance of Housing Typology for Vacants')
+ax1.set_title('Top 10 Neighborhoods for Vacants')
 fig1.savefig("vacants_bytypology.png")
 
 ## Graph of housing neighborhoods for vacant lots
@@ -210,17 +215,13 @@ vacants.to_csv("vacants_clean.csv")
 
 print("\n-------------------\n")
 
-#%% Receivership TO DO: check dates?
+#%% Receivership TO DO: fix merge - receiver and receiver expanded
 
 print("RECEIVERSHIP INFO\n")
 
-## Open Receivership
+## Open file, clean headings and remove unecessary columns
 receiver = pd.read_csv("receiverships.csv", dtype=str)
-
-## Removing spaces in block lot and column names
 receiver.columns = receiver.columns.str.replace(' ', '')
-
-##Dropping columns with very limited info/are irrelevant
 receiver = receiver.drop(columns=["Lawyer", "ProjectName", "ReceiverAppointed", 
               "AuctionDate", "x", "y"])
 
@@ -238,6 +239,14 @@ receiver["FullAddress"] = receiver["HouseNum"] + " " + receiver["Dir"] + " " + r
 receiver["FullAddress"] = receiver["FullAddress"].str.replace(r"\s+", " ", regex=True)
 receiver = receiver.drop(columns=["StreetName", "HouseNum", "Dir", "StreetType", "Zip"])
 
+##Stripping blank spaces in key columns
+receiver["Neighborhood"] = receiver["Neighborhood"].str.replace(r"\s+", " ", regex=True)
+receiver["FullAddress"] = receiver["FullAddress"].str.replace(r"\s+", " ", regex=True)
+receiver["BlockLot"] = receiver["BlockLot"].str.replace(r"\s+", " ", regex=True)
+receiver["Neighborhood"] = receiver["Neighborhood"].str.strip()
+receiver["FullAddress"] = receiver["FullAddress"].str.strip()
+receiver["BlockLot"] = receiver["BlockLot"].str.strip()
+
 ## Identifying duplicated parcels and dropping duplicates
 receiver_dup = receiver.duplicated( subset="BlockLot", keep=False )
 receiver = receiver.drop_duplicates(subset="BlockLot")
@@ -248,26 +257,70 @@ print('\nAfter dropping, New # of duplicated BLOCKLOT labels in Receiver:', rece
 ## Describing data
 print("\nTotal records in Receiver:", len(receiver))
 
+## FOLDING IN ADDITIONAL RECEIVERSHIP INFO FROM CITY
+
+## Open Receivership Expanded, cleaning headings and removing unecessary columns
+receiverEx = pd.read_csv("receivership_expand.csv", dtype=str)
+receiverEx.columns = receiverEx.columns.str.replace(' ', '')
+receiverEx = receiverEx.drop(columns=["X", "Y", "OBJECTID", "OBJECTID_1", "ID_RS_Web", "Council_District"])
+
+## Identifying duplicated parcels and dropping duplicates
+receiverEx_dup = receiverEx.duplicated( subset="BLOCKLOT", keep=False )
+receiverEx = receiverEx.drop_duplicates(subset="BLOCKLOT")
+receiverEx_dup2 = receiverEx.duplicated(subset="BLOCKLOT", keep=False)
+print('\nDuplicated parcels in ReceiverE:', receiverEx_dup.sum() ) 
+print('\nAfter dropping, New # of duplicated BLOCKLOT labels in Receiver Expanded:', receiverEx_dup2.sum() ) 
+
+print("\nTotal records in Receiver Expanded:", len(receiverEx))
+
+## Need to clean this up - removing records more than a decade old
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2001")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2005")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2006")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2007")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2008")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2009")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2010")]
+receiverEx = receiverEx[~receiverEx.DateFiled.str.contains("2011")]
+
+## Dropping unecessary columns
+receiverEx = receiverEx.drop(columns=["DateFiled", "ReceiverAppointed", "DateAuction",
+                                      "SoldAtAuction", "HousingMarketTypology2017"])
+
+## Stripping columns, renaming and preparing for merge
+columnlist = ["Address", "Neighborhood", "BLOCKLOT"]
+receiverEx["Address"] = receiverEx["Address"].str.replace(r"\s+", " ", regex=True)
+receiverEx["Neighborhood"] = receiverEx["Neighborhood"].str.replace(r"\s+", " ", regex=True)
+receiverEx["BLOCKLOT"] = receiverEx["BLOCKLOT"].str.replace(' ', '')
+receiverEx["Address"] = receiverEx["Address"].str.strip()
+receiverEx["Neighborhood"] = receiverEx["Neighborhood"].str.strip()
+receiverEx["BLOCKLOT"] = receiverEx["BLOCKLOT"].str.strip()
+receiverEx = receiverEx.rename(columns={"Address":"FullAddress", "BLOCKLOT":"BlockLot"})
+
+## Merging receiver with receiver expanded ISSUE HERE
+receivership = receiver.merge(receiverEx, on=["BlockLot", "FullAddress", "Neighborhood"], how='outer', indicator=True)
+print("\nMerge counts for receivership and receiver expanded:\n\n", receivership["_merge"].value_counts() )
+
 ## Graph of housing neighborhoods for receivership activities
-receiver_by_neighborhood = receiver.groupby("Neighborhood")
-receiver_neighborhood_summary = pd.DataFrame()
-receiver_neighborhood_summary["Neighborhood"] = receiver_by_neighborhood.size()
-receiver_top_neighborhood = receiver_neighborhood_summary["Neighborhood"].sort_values()[-10:]
+receivership_by_neighborhood = receivership.groupby("Neighborhood")
+receivership_neighborhood_summary = pd.DataFrame()
+receivership_neighborhood_summary["Neighborhood"] = receivership_by_neighborhood.size()
+receivership_top_neighborhood = receivership_neighborhood_summary["Neighborhood"].sort_values()[-10:]
 
 fig1, ax1 = plt.subplots()
-receiver_top_neighborhood.plot.barh(ax=ax1, color=("#900606"))
+receivership_top_neighborhood.plot.barh(ax=ax1, color=("#900606"))
 ax1.set_xlabel("Neighborhood")
-ax1.set_title('Prevalance of Neighborhood for Receivership')
+ax1.set_title('Top 10 Neighborhoods for Receivership')
 fig1.savefig('receivership_byneighborhood.png')
 
 ## Preparing for merge
-receiver["REC:PROG"] = 1
-receiver = receiver.rename(columns={"BlockLot": "BLOCKLOT", "Neighborhood":"REC:Neighborhood", 
+receivership["REC:PROG"] = 1
+receivership = receivership.rename(columns={"BlockLot": "BLOCKLOT", "Neighborhood":"REC:Neighborhood", 
                                     "FullAddress":"REC:Address"})
-receiver = receiver[["BLOCKLOT", "REC:PROG", "REC:Neighborhood", "REC:Address"]]
+receivership = receivership[["BLOCKLOT", "REC:PROG", "REC:Neighborhood", "REC:Address"]]
 
 ##Saving cleaned data to csv file
-receiver.to_csv("receiver_clean.csv")
+receivership.to_csv("receiver_clean.csv")
 
 print("\n-------------------\n")
 
@@ -288,6 +341,8 @@ print("\nNumber of missing values in each column of open bid out of", len(open_b
 
 ## Removing spaces in block lot 
 open_bid["BLOCKLOT"] = open_bid["BLOCKLOT"].str.replace(' ', '')
+open_bid["Neighborhood"] = open_bid["Neighborhood"].str.strip()
+
 
 ## Identifying duplicated parcels and dropping duplicates
 open_bid_dup = open_bid.duplicated( subset="BLOCKLOT", keep=False )
@@ -322,7 +377,7 @@ open_bid_top_neighborhood = open_bid_neighborhood_summary["NEIGHBOR"].sort_value
 fig1, ax1 = plt.subplots()
 open_bid_top_neighborhood.plot.barh(ax=ax1, color=("#866A0D"))
 ax1.set_xlabel("Neighborhood")
-ax1.set_title('Prevalance of Neighborhood for Open Bid')
+ax1.set_title('Top 10 Neighborhoods for Open Bid')
 fig1.tight_layout()
 fig1.savefig('openbid_byneighborhood.png')
 
