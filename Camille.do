@@ -1,6 +1,6 @@
 clear
-import delimited "C:\Users\cgwathne\OneDrive - Syracuse University\Advanced PolicyAnalysis\Github\baltimore_vacant_policy_analysis_dev\neighborhood_data.csv", varnames(1)
-save "C:\Users\cgwathne\OneDrive - Syracuse University\Advanced PolicyAnalysis\Github\baltimore_vacant_policy_analysis_dev\neighborhood_data.csv"
+import delimited "C:\Users\cgwathne\OneDrive - Syracuse University\Advanced Policy Analysis\Github\baltimore_vacant_policy_analysis_dev\neighborhood_data.csv", varnames(1)
+save "C:\Users\cgwathne\OneDrive - Syracuse University\Advanced Policy Analysis\Github\baltimore_vacant_policy_analysis_dev\neighborhood_dta", replace
 *Cleaning data
 *drop neighborhoods with less than 200 people
 keep if population>200
@@ -8,7 +8,7 @@ keep if population>200
 *generate a variable for percent of parcels in any program
 capture drop perc_anyprog
 gen perc_anyprog=anyprog/totalparcels
-summarize anyprog/totalparcels, detail
+summarize perc_anyprog, detail
 *generage a binary variable for neighborhood with parcels in any program
 capture drop binary_anyprog
 gen binary_anyprog=1 if anyprog>0
@@ -55,7 +55,7 @@ replace categ_anyprog=2 if perc_anyprog>0.02 & perc_anyprog<=0.10
 replace categ_anyprog=3 if perc_anyprog>0.10 & perc_anyprog<=0.20
 replace categ_anyprog=4 if perc_anyprog>0.20 & perc_anyprog!=.
 *doing summary statistics by category
-by categ_anyprog, sort: sum perc_white perc_black perc_hisp medianincome
+by categ_anyprog, sort: sum perc_white perc_black medianincome pop_dens pop_chng
 
 *generate a categorical variable based on the distribution of parcels but with rounded percentages CITY OWNED PROGRAM - better way to bin these?
 capture drop categ_cityanyprog
@@ -66,8 +66,10 @@ replace categ_cityanyprog=2 if perc_cityanyprog>0.001 & perc_cityanyprog<=0.003
 replace categ_cityanyprog=3 if perc_cityanyprog>0.003 & perc_cityanyprog<=0.01
 replace categ_cityanyprog=4 if perc_cityanyprog>0.01 & perc_cityanyprog!=.
 *doing summary statistics by category
-by categ_cityanyprog, sort: sum perc_white perc_black perc_hisp medianincome
+by categ_cityanyprog, sort: sum perc_white perc_black medianincome pop_dens pop_chng
 
+*generate neighborhood income quartiles
+xtile incquart=medianincome, nq(4)
 
 *doing regressions with one or more regressors
 reg perc_anyprog perc_white 
@@ -81,7 +83,8 @@ scatter perc_anyprog perc_black, msize(2pt 2pt)
 scatter perc_anyprog perc_white, msize(2pt 2pt)
 scatter perc_rec medianincome, msize(2pt)
 
-
-
+reg perc_rec i.incquart
+reg perc_rec i.incquart perc_vac
+by incquart, sort: summarize medianincome
 
 

@@ -31,7 +31,7 @@ neighborhoods["Neighborhood"] = neighborhoods["Neighborhood"].str.upper()
 neighborhoods["Neighborhood"] = neighborhoods["Neighborhood"].str.strip()
 neighborhoods["Neighborhood"] = neighborhoods["Neighborhood"].str.replace(r"\s+", " ", regex=True)
 
-## Read in economic data from city compiled pdf documents
+## Read in economic data from manually entered pdf documents
 city_data_pdf = pd.read_csv("city_data_pdf.csv")
 city_data_pdf["Neighborhood"] = city_data_pdf["Neighborhood"].str.upper()
 city_data_pdf["Neighborhood"] = city_data_pdf["Neighborhood"].str.strip()

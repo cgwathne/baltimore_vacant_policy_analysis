@@ -343,7 +343,6 @@ print("\nNumber of missing values in each column of open bid out of", len(open_b
 open_bid["BLOCKLOT"] = open_bid["BLOCKLOT"].str.replace(' ', '')
 open_bid["Neighborhood"] = open_bid["Neighborhood"].str.strip()
 
-
 ## Identifying duplicated parcels and dropping duplicates
 open_bid_dup = open_bid.duplicated( subset="BLOCKLOT", keep=False )
 open_bid = open_bid.drop_duplicates(subset="BLOCKLOT")
@@ -391,6 +390,64 @@ open_bid = open_bid[["BLOCKLOT", "BID:PROG", "BID:Neighborhood", "BID:Typology",
 open_bid.to_csv("open_bid_clean.csv")
 
 print("\n-------------------\n")
+
+
+#%% City Demos
+
+## Open file, clean headings and remove unecessary columns
+demo = pd.read_csv("demo.csv", dtype=str)
+demo.columns = demo.columns.str.replace(' ', '')
+demo = demo[["BLOCKLOT", "DateDemoFinished", "Address", "HousingMarketTypology2017", "Neighborhood"]]
+
+## Determining extent of missing data
+print("Number of missing values in each column of demo out of", len(demo), 
+      "total entries:\n", demo.isnull().sum())
+
+##Stripping blank spaces in key columns
+demo["Neighborhood"] = demo["Neighborhood"].str.replace(r"\s+", " ", regex=True)
+demo["Address"] = demo["Address"].str.replace(r"\s+", " ", regex=True)
+demo["BLOCKLOT"] = demo["BLOCKLOT"].str.replace(r"\s+", " ", regex=True)
+demo["Neighborhood"] = demo["Neighborhood"].str.strip()
+demo["Address"] = demo["Address"].str.strip()
+demo["BLOCKLOT"] = demo["BLOCKLOT"].str.strip()
+demo["BLOCKLOT"] = demo["BLOCKLOT"].str.replace(' ', '')
+
+## Identifying duplicated parcels and dropping duplicates
+demo_dup = demo.duplicated( subset="BLOCKLOT", keep=False )
+demo = demo.drop_duplicates(subset="BLOCKLOT")
+demo_dup2 = demo.duplicated(subset="BLOCKLOT", keep=False)
+print('\nDuplicated parcels in Demo:', demo_dup.sum() ) 
+print('\nAfter dropping, New # of duplicated BLOCKLOT labels in Demo:', demo_dup2.sum() ) 
+
+## Graph of neighborhoods for open bid
+demo_by_neighborhood = demo.groupby("Neighborhood")
+demo_neighborhood_summary = pd.DataFrame()
+demo_neighborhood_summary["Neighborhood"] = demo_by_neighborhood.size()
+demo_top_neighborhood = demo_neighborhood_summary["Neighborhood"].sort_values()[-10:]
+
+fig1, ax1 = plt.subplots()
+demo_top_neighborhood.plot.barh(ax=ax1, color=("#93BD1D"))
+ax1.set_xlabel("Neighborhood")
+ax1.set_title('Top 10 Neighborhoods for Demos')
+fig1.tight_layout()
+fig1.savefig('demo_byneighborhood.png')
+
+## Preparing for merge
+demo["DEMO:PROG"] = 1
+demo = demo.rename(columns={"Address":"DEMO:Address", "Neighborhood":"DEMO:Neighborhood",
+                                  "HousingMarketTypology2017":"DEMO:Typology"})
+demo = demo[["BLOCKLOT", "DEMO:PROG", "DEMO:Neighborhood", "DEMO:Typology", "DEMO:Address"]]
+
+##Saving cleaned data to csv file
+demo.to_csv("demo_clean.csv")
+
+print("\n-------------------\n")
+
+
+
+
+
+
 
 
 
