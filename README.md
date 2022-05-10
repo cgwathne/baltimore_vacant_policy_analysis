@@ -15,8 +15,7 @@ As the population of Baltimore continues to decline, from a peak of approximatel
 
 **Adopt-A-Lot:** Enables citizens to adopt/steward designated empty plots of land for private use.
 
-**Open-Bid:** Enables citizens to purchase certain vacant parcels. 
-
+**Open-Bid:** Enables citizens to purchase certain vacant parcels.  
 **Receivership:** Encompasses a suite of targeted city activities intended to preserve and sustain “middle market neighborhoods.” Consists of targeted housing code enforcement; issuance of citations for negligence; seizure of properties; and legal transfer of deed to new receiving entity.
 
 **Demolition:** Includes city sponsored, targeted demolition of abandoned or neglected properties.
