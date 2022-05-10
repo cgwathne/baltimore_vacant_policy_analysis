@@ -28,14 +28,14 @@ Python Files
 **.NeighborhoodData.py:** Merges neighborhood-level census information, csv files titled "city_data_pdf" which includes manually coded median income data, and grouped program information from previous scripts. Produces final csv file, "neighborhood_full_data," which is saved in the main repository.  
 **5.QGISprep.py:** Uses neighborhood_full_data.csv to produce neighborhood-level percentages in preparation for QGIS. Produces baltimore_shp.gpkg file, saved to "QGIS Files" folder. 
 
-## Data Sets  
-real_property.csv:
-adopt_a_lot.csv:
-receivership.csv:
-receivership_expand:
-vacants.csv:
-open_bid.csv:
-demo.csv:
-neighborhoods.csv:
+## Original Data Sets  
+  real_property.csv:
+  adopt_a_lot.csv:
+  receivership.csv:
+  receivership_expand:
+  vacants.csv:
+  open_bid.csv:
+  demo.csv:
+  neighborhoods.csv:
 
 ![alt_text_here](image.png)
