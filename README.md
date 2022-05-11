@@ -41,11 +41,16 @@ This project uses Python to clean and merge datasets; QGIS to build maps; and Ta
 The following files should be run in order. Each script produces outputs automatically saved in sub-folders, with some files being used in subsequent scripts.  
 
 **1.DataClean.py:** Pulls in original, parcel-level data files from "Source Files" folder. See below for details on the origin and type of datasets. Cleans data, describes and characterises duplicates, produces program counts, codes binary value for each program participation, and prepares cleaned csv files which save to "Cleaned Files" folder and are used in subsequent scripts.  
+
 **1b.InitialAnalysis.py:** Optional script that conducts intial program-specific analysis from cleaned csv files (eg housing typology, neighborhood prevalence, primary property owners). Output graphs are saved in folder titled "Initial Analysis_Chart Outputs."  
+
 **2.AggregateData.py:** Aggregates cleaned, parcel-level csv files and merges on unique Block Lot identifer to create compiled sheet. Produces compiled_parcels csv file which saves to folder "Aggregated Files."  
+
 **3.AggDataAnalysis.py:** Conducts analysis on combined parcel file; examines parcel overlap and program co-occurance. Produces neighborhood_parcel_agg file, organized by neighborhood, to prepare for merge with neighborhood-level data.  
 **.NeighborhoodData.py:** Merges neighborhood-level census information, csv files titled "city_data_pdf" which includes manually coded median income data, and grouped program information from previous scripts. Produces final csv file, "neighborhood_full_data," which is saved in the main repository.  
-**5.QGISprep.py:** Uses neighborhood_full_data.csv to produce neighborhood-level percentages in preparation for QGIS. Produces baltimore_shp.gpkg file, saved to "QGIS Files" folder. 
+
+**5.QGISprep.py:** Uses neighborhood_full_data.csv to produce neighborhood-level percentages in preparation for QGIS. Produces baltimore_shp.gpkg file, saved to "QGIS Files" folder.  
+
 
 ## Description of Source Files used in Python Code  
 **real_property.csv:** Detailed information on all parcels in Baltimore City. Downloaded from Open Baltimore in March 2022: https://data.baltimorecity.gov/ 
