@@ -29,13 +29,13 @@ Python Files
 **5.QGISprep.py:** Uses neighborhood_full_data.csv to produce neighborhood-level percentages in preparation for QGIS. Produces baltimore_shp.gpkg file, saved to "QGIS Files" folder. 
 
 ## Original Data Sets  
-  real_property.csv:
-  adopt_a_lot.csv:
-  receivership.csv:
-  receivership_expand:
-  vacants.csv:
-  open_bid.csv:
-  demo.csv:
-  neighborhoods.csv:
+ real_property.csv:
+adopt_a_lot.csv:
+receivership.csv:
+receivership_expand:
+vacants.csv:
+open_bid.csv:
+demo.csv:
+neighborhoods.csv:
 
 ![alt_text_here](image.png)
