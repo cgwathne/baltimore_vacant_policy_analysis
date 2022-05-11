@@ -14,7 +14,7 @@ import zipfile
 #%% CLEANING AND PREPARING REAL PROPERTY FILE 
 
 print("\nREAL PROPERTY INFO\n")
-real_property = pd.read_csv("Source Files/real_property.csv", dtype=str)
+real_property = pd.read_csv("Source Files/real_property.zip", dtype=str)
 
 ## Checking for and  describing nature of duplicates in "real property" records
 real_dup = real_property.duplicated( subset="BLOCKLOT", keep=False)
