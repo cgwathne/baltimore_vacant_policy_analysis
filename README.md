@@ -11,7 +11,7 @@ I completed this project as part of my master's level coursework at the Maxwell 
 
 ### This project aims to:
 - Characterize the neighborhoods that have a high portion of vacants
-- Analyze the intersection and overlap of multiple Baltimore City policies to address vacants, including four programmatic interventions as well as direct city ownership
+- Analyze the intersection and overlap of multiple Baltimore City policies to address vacants, including five programmatic interventions as well as direct city ownership
 - Visually depict these relationships to better understand how these policies play out 
 
 ### Terms
